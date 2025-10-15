@@ -11,8 +11,8 @@ except (KeyError, FileNotFoundError):
     st.info("Por favor, adicione sua chave do Hugging Face aos Secrets da sua aplicação.")
     st.stop() # Interrompe a execução do app se a chave não for encontrada.
 
-# URL específica para o Mistral-7B-Instruct-v0.3.
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
+# URL específica para o Mistral-7B-Instruct-v0.2.
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
 
 # Cabeçalho da requisição
 headers = {
@@ -58,7 +58,7 @@ def obter_resposta_ia(prompt_usuario):
 # --- INTERFACE DO CHAT COM STREAMLIT ---
 st.set_page_config(page_title="Assistente Financeiro", page_icon="💰")
 st.title("Assistente Financeiro com IA 🤖")
-st.caption("Usando o modelo Mistral-7B-Instruct-v0.3")
+st.caption("Usando o modelo Mistral-7B-Instruct-v0.2")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
