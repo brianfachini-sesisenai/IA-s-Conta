@@ -8,18 +8,15 @@ try:
     HF_API_KEY = st.secrets["HF_API_KEY"]
 except (KeyError, FileNotFoundError):
     st.error("ERRO: A chave de API 'HF_API_KEY' não foi encontrada nos Secrets do Streamlit.")
+    st.info("Por favor, adicione sua chave do Hugging Face aos Secrets da sua aplicação.")
     st.stop() # Interrompe a execução do app se a chave não for encontrada.
 
-# [ETAPA DE DIAGNÓSTICO 1] - VERIFICAR SE A CHAVE FOI CARREGADA CORRETAMENTE
-# Esta linha irá exibir os primeiros 7 caracteres da sua chave no app.
-# Se você vir "Chave carregada...", significa que o st.secrets está funcionando.
-# LEMBRE-SE DE REMOVER ESTA LINHA DEPOIS DE CONFIRMAR QUE FUNCIONA!
+# [DIAGNÓSTICO] - Exibe na barra lateral para confirmar que a chave foi carregada.
 st.sidebar.write(f"✔️ Chave carregada. Início: {HF_API_KEY[:7]}...")
 
-# [ETAPA DE DIAGNÓSTICO 2] - USAR O MODELO MAIS ESTÁVEL POSSÍVEL
-# Trocamos para o 'gpt2', um modelo clássico que garantidamente tem um endpoint público funcional.
-API_URL = "https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3"
-st.sidebar.write(f"✔️ Usando modelo de teste: {API_URL.split('/')[-1]}")
+# [MODELO-ALVO] - URL específica para o Mistral-7B-Instruct-v0.3.
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
+st.sidebar.write(f"✔️ Modelo-alvo: mistralai/Mistral-7B-Instruct-v0.3")
 
 # Cabeçalho da requisição
 headers = {
@@ -28,33 +25,36 @@ headers = {
 }
 
 # --- FUNÇÃO PARA CHAMAR A API ---
-def obter_resposta_ia(prompt):
+def obter_resposta_ia(prompt_usuario):
     """
-    Envia um prompt para a API do Hugging Face e retorna a resposta do modelo.
+    Formata o prompt para o Mistral, envia para a API e retorna a resposta.
     """
+    # [BOA PRÁTICA] - Formata o prompt com as tags que o modelo espera.
+    prompt_formatado = f"[INST] {prompt_usuario} [/INST]"
+
     payload = {
-        "inputs": prompt,
+        "inputs": prompt_formatado,
         "parameters": {
-            "max_new_tokens": 150, # gpt2 é mais antigo, respostas menores são mais rápidas
-            "temperature": 0.8,
-            "repetition_penalty": 1.2
+            "max_new_tokens": 1024,
+            "temperature": 0.7,
+            "repetition_penalty": 1.1 # Ajustado para Mistral
         }
     }
     
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=45) # Timeout aumentado
         
         if response.status_code != 200:
             if response.status_code == 503:
-                return "O modelo de IA está carregando. Por favor, aguarde 20 segundos e tente novamente."
-            # Exibe o erro completo para facilitar a depuração
+                return "O modelo de IA está carregando. Por favor, aguarde cerca de 30 segundos e tente novamente."
             return f"Erro ao contatar a API: {response.status_code} - {response.text}"
             
         result = response.json()
         generated_text = result[0].get('generated_text', "Não foi possível obter uma resposta.")
         
-        if generated_text.startswith(prompt):
-            return generated_text[len(prompt):].strip()
+        # Limpa a resposta, removendo o prompt que o modelo sempre repete
+        if generated_text.startswith(prompt_formatado):
+            return generated_text[len(prompt_formatado):].strip()
             
         return generated_text
 
@@ -62,27 +62,27 @@ def obter_resposta_ia(prompt):
         return f"Erro de conexão: {e}"
 
 # --- INTERFACE DO CHAT COM STREAMLIT ---
-st.set_page_config(page_title="Assistente Financeiro (Modo Teste)", page_icon="🧪")
+st.set_page_config(page_title="Assistente Financeiro", page_icon="💰")
 st.title("Assistente Financeiro com IA 🤖")
-st.caption("Executando em modo de diagnóstico para testar a conexão com a API.")
+st.caption("Usando o modelo Mistral-7B-Instruct-v0.3")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.messages.append(
-        {"role": "assistant", "content": "Olá! Estou em modo de teste. Por favor, faça uma pergunta simples para verificar a conexão."}
+        {"role": "assistant", "content": "Olá! Sou seu assistente financeiro. Como posso te ajudar hoje?"}
     )
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Digite 'olá' ou uma pergunta simples..."):
+if prompt := st.chat_input("Digite sua pergunta sobre finanças..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Testando conexão com a API..."):
+        with st.spinner("Analisando e gerando sua resposta com o Mistral..."):
             response = obter_resposta_ia(prompt)
             st.markdown(response)
     
