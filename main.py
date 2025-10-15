@@ -4,7 +4,7 @@ import requests
 # --- CONFIGURAÇÃO DA API ---
 # Coloque sua chave de API do Hugging Face aqui.
 # Para um projeto real, use o st.secrets para proteger sua chave!
-HF_API_KEY = "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" # <--- SUBSTITUA PELA SUA CHAVE REAL
+HF_API_KEY = "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" # <--- SUBSTITUA PELA SUA CHAVE REAL
 
 # URL do modelo que sabemos que está funcionando e é de alta qualidade.
 API_URL = "https://api-inference.huggingface.co/models/google/gemma-7b-it"
