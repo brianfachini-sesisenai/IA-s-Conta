@@ -11,12 +11,8 @@ except (KeyError, FileNotFoundError):
     st.info("Por favor, adicione sua chave do Hugging Face aos Secrets da sua aplicação.")
     st.stop() # Interrompe a execução do app se a chave não for encontrada.
 
-# [DIAGNÓSTICO] - Exibe na barra lateral para confirmar que a chave foi carregada.
-st.sidebar.write(f"✔️ Chave carregada. Início: {HF_API_KEY[:7]}...")
-
-# [MODELO-ALVO] - URL específica para o Mistral-7B-Instruct-v0.3.
+# URL específica para o Mistral-7B-Instruct-v0.3.
 API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
-st.sidebar.write(f"✔️ Modelo-alvo: mistralai/Mistral-7B-Instruct-v0.3")
 
 # Cabeçalho da requisição
 headers = {
@@ -29,7 +25,6 @@ def obter_resposta_ia(prompt_usuario):
     """
     Formata o prompt para o Mistral, envia para a API e retorna a resposta.
     """
-    # [BOA PRÁTICA] - Formata o prompt com as tags que o modelo espera.
     prompt_formatado = f"[INST] {prompt_usuario} [/INST]"
 
     payload = {
@@ -37,12 +32,12 @@ def obter_resposta_ia(prompt_usuario):
         "parameters": {
             "max_new_tokens": 1024,
             "temperature": 0.7,
-            "repetition_penalty": 1.1 # Ajustado para Mistral
+            "repetition_penalty": 1.1
         }
     }
     
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=45) # Timeout aumentado
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=45)
         
         if response.status_code != 200:
             if response.status_code == 503:
@@ -52,7 +47,6 @@ def obter_resposta_ia(prompt_usuario):
         result = response.json()
         generated_text = result[0].get('generated_text', "Não foi possível obter uma resposta.")
         
-        # Limpa a resposta, removendo o prompt que o modelo sempre repete
         if generated_text.startswith(prompt_formatado):
             return generated_text[len(prompt_formatado):].strip()
             
