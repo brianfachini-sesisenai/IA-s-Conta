@@ -18,7 +18,7 @@ st.sidebar.write(f"✔️ Chave carregada. Início: {HF_API_KEY[:7]}...")
 
 # [ETAPA DE DIAGNÓSTICO 2] - USAR O MODELO MAIS ESTÁVEL POSSÍVEL
 # Trocamos para o 'gpt2', um modelo clássico que garantidamente tem um endpoint público funcional.
-API_URL = "https://api-inference.huggingface.co/models/gpt2"
+API_URL = "https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3"
 st.sidebar.write(f"✔️ Usando modelo de teste: {API_URL.split('/')[-1]}")
 
 # Cabeçalho da requisição
