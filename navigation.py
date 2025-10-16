@@ -17,8 +17,12 @@ def make_sidebar():
     with st.sidebar:
         st.title("💡 IA's Conta")
         
-        # --- A ÚNICA MUDANÇA ESTÁ AQUI ---
-        st.divider() # Adiciona a linha horizontal
+        # --- MUDANÇA PRINCIPAL AQUI ---
+        # REMOVE a linha antiga:
+        # st.divider() 
+        
+        # ADICIONA esta nova linha no lugar:
+        st.markdown("<hr style='margin-top: 0px; margin-bottom: 1rem;'>", unsafe_allow_html=True)
         
         st.page_link("main.py", label="Início", icon="🏠")
 
