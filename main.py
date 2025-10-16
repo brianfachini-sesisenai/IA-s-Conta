@@ -17,7 +17,7 @@ if "step" not in st.session_state:
 
 # --- FUNÇÕES DE TELA (LOGIN E CADASTRO) ---
 def tela_login():
-    st.header("🔐 Login")
+    st.header("Login")
     with st.form("login_form"):
         username = st.text_input("Usuário")
         password = st.text_input("Senha", type="password")
