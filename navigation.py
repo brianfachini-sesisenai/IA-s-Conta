@@ -3,11 +3,18 @@ import streamlit as st
 def make_sidebar():
     """Cria uma barra lateral personalizada e esconde a navegação padrão."""
     
-    # Esconde a navegação padrão do Streamlit baseada em arquivos
+    # Vamos adicionar nossa nova regra de estilo aqui
     st.markdown(
         """
         <style>
+            /* Esconde a navegação padrão do Streamlit baseada em arquivos */
             [data-testid="stSidebarNav"] {display: none;}
+
+            /* --- NOVA REGRA AQUI --- */
+            /* Reduz o espaço no topo do conteúdo da barra lateral */
+            [data-testid="stSidebar"] > div:first-child {
+                padding-top: 1rem; /* O valor padrão é maior. Ajuste se quiser. */
+            }
         </style>
         """,
         unsafe_allow_html=True
@@ -17,11 +24,6 @@ def make_sidebar():
     with st.sidebar:
         st.title("💡 IA's Conta")
         
-        # --- MUDANÇA PRINCIPAL AQUI ---
-        # REMOVE a linha antiga:
-        # st.divider() 
-        
-        # ADICIONA esta nova linha no lugar:
         st.markdown("<hr style='margin-top: 0px; margin-bottom: 1rem;'>", unsafe_allow_html=True)
         
         st.page_link("main.py", label="Início", icon="🏠")
