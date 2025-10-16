@@ -1,0 +1,17 @@
+# .streamlit/config.toml
+
+# Esta seção define a configuração da barra lateral para aplicativos de múltiplas páginas.
+[pages]
+
+# Define a primeira página.
+# O Streamlit automaticamente entende que o 'main.py' é a página raiz.
+[[pages.page]]
+name = "Início"  # O nome que você quer que apareça.
+icon = "🏠"       # Um ícone opcional.
+path = "main.py" # O caminho para o arquivo.
+
+# Define a segunda página.
+[[pages.page]]
+name = "Chat Financeiro" # O nome personalizado para a página de chat.
+icon = "💬"
+path = "pages/1_Chat.py" # O caminho para o arquivo da página.
