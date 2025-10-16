@@ -3,17 +3,16 @@ import streamlit as st
 def make_sidebar():
     """Cria uma barra lateral personalizada e esconde a navegação padrão."""
     
-    # Vamos adicionar nossa nova regra de estilo aqui
     st.markdown(
         """
         <style>
             /* Esconde a navegação padrão do Streamlit baseada em arquivos */
             [data-testid="stSidebarNav"] {display: none;}
 
-            /* --- NOVA REGRA AQUI --- */
-            /* Reduz o espaço no topo do conteúdo da barra lateral */
-            [data-testid="stSidebar"] > div:first-child {
-                padding-top: 1rem; /* O valor padrão é maior. Ajuste se quiser. */
+            /* --- MUDANÇA DEFINITIVA AQUI --- */
+            /* Força a remoção do espaçamento no topo da barra lateral */
+            [data-testid="stSidebarContent"] {
+                padding-top: 0.5rem !important; /* Use !important para forçar a regra */
             }
         </style>
         """,
