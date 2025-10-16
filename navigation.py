@@ -9,11 +9,16 @@ def make_sidebar():
             /* Esconde a navegação padrão do Streamlit baseada em arquivos */
             [data-testid="stSidebarNav"] {display: none;}
 
-            /* --- SUA SOLUÇÃO PRECISA APLICADA AQUI --- */
+            /* --- NOVA REGRA PARA O CABEÇALHO --- */
+            /* Remove o padding do cabeçalho da sidebar (onde fica a seta) */
+            [data-testid="stSidebarHeader"] {
+                padding-top: 0.5rem !important; /* Ajuste para 0rem se quiser totalmente colado */
+            }
+
             /* Zera o padding do elemento do título (h1) dentro da barra lateral */
             [data-testid="stSidebarContent"] h1 {
                 padding-top: 0rem !important;
-                padding-bottom: 0.25rem !important; /* Deixa um respiro mínimo antes da linha */
+                padding-bottom: 0.25rem !important;
             }
         </style>
         """,
@@ -24,7 +29,6 @@ def make_sidebar():
     with st.sidebar:
         st.title("💡 IA's Conta")
         
-        # A nossa linha horizontal customizada continua perfeita para este cenário
         st.markdown("<hr style='margin-top: 0px; margin-bottom: 1rem;'>", unsafe_allow_html=True)
         
         st.page_link("main.py", label="Início", icon="🏠")
