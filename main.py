@@ -3,7 +3,6 @@ from huggingface_hub import InferenceClient
 
 # --- 1. CONFIGURAÇÃO DA PÁGINA E ESTADO INICIAL ---
 
-# ALTERAÇÃO 1: Atualiza o título que aparece na aba do navegador.
 st.set_page_config(page_title="IA's Conta", page_icon="💡", layout="centered")
 
 # Tenta inicializar o cliente da API do Hugging Face.
@@ -49,59 +48,82 @@ if "profile_submitted" not in st.session_state:
 
 # --- 4. LÓGICA DA INTERFACE (UI) ---
 
-# ALTERAÇÃO 2: Atualiza o título principal exibido na página.
 st.title("💡 IA's Conta")
+st.markdown("Seu assistente financeiro pessoal, pronto para te ajudar a tomar as melhores decisões.")
 
-# --- SEÇÃO A: QUESTIONÁRIO INICIAL ---
+# --- SEÇÃO A: QUESTIONÁRIO INICIAL DETALHADO ---
 
 if not st.session_state.profile_submitted:
-    st.info("👋 Olá! Para começar, preciso entender um pouco sobre seu perfil financeiro.")
+    st.info("👋 Olá! Antes de começarmos, preciso entender seus objetivos para te ajudar da melhor forma.")
 
     with st.form("user_profile_form"):
-        renda = st.number_input("Qual é a sua renda mensal (R$)?", min_value=0.0, step=100.0)
-        objetivo = st.radio(
-            "Qual seu principal objetivo financeiro no momento?",
-            ("Apenas guardar dinheiro (criar reserva)", "Investir para o futuro")
+        st.subheader("Sobre Você")
+        renda = st.number_input("Qual é a sua renda mensal aproximada (R$)?", min_value=0.0, step=100.0, format="%.2f")
+        
+        st.subheader("Seus Objetivos")
+        objetivos = st.multiselect(
+            "Quais são seus principais objetivos financeiros? (Pode marcar mais de um)",
+            ["Organizar minhas finanças", "Diminuir meus gastos", "Começar a investir"]
         )
+
+        # Variáveis para as perguntas condicionais
         perfil_investidor = "Não se aplica"
-        if objetivo == "Investir para o futuro":
-            perfil_investidor = st.selectbox(
-                "Qual seu perfil de investidor?",
-                ("Conservador (prefiro segurança)", "Moderado (busco um equilíbrio)", "Arrojado (busco altos retornos)")
+        conhecimento_investimento = "Não se aplica"
+
+        # Se o usuário quer investir, mostramos as perguntas adicionais
+        if "Começar a investir" in objetivos:
+            st.subheader("Sobre Investimentos")
+            conhecimento_investimento = st.radio(
+                "Qual seu nível de conhecimento sobre investimentos?",
+                ["Sou iniciante, não sei quase nada", "Intermediário, já entendo o básico"]
+            )
+            perfil_investidor = st.radio(
+                "Identifique seu perfil de investidor:",
+                [
+                    "**Conservador:** Priorizo a segurança do meu dinheiro, mesmo que o retorno seja menor.",
+                    "**Moderado:** Busco um equilíbrio, aceitando um pouco de risco por melhores retornos.",
+                    "**Arrojado:** Meu foco é maximizar os retornos, mesmo que isso signifique correr mais riscos."
+                ]
             )
         
-        submitted = st.form_submit_button("Começar a Análise!")
+        submitted = st.form_submit_button("Gerar meu plano inicial!")
 
         if submitted:
-            st.session_state.user_profile = {
-                "renda": renda,
-                "objetivo": objetivo,
-                "perfil_investidor": perfil_investidor
-            }
-            st.session_state.profile_submitted = True
+            # Validação para garantir que o usuário preencheu os campos
+            if not objetivos:
+                st.error("Por favor, selecione pelo menos um objetivo.")
+            else:
+                st.session_state.user_profile = {
+                    "renda": renda,
+                    "objetivos": ", ".join(objetivos), # Transforma a lista em texto
+                    "perfil_investidor": perfil_investidor.split(":")[0], # Pega só o nome do perfil (ex: "Conservador")
+                    "conhecimento_investimento": conhecimento_investimento
+                }
+                st.session_state.profile_submitted = True
 
-            # ALTERAÇÃO 3: Atualiza o nome da IA no prompt inicial.
-            prompt_inicial = f"""
-            Você é a IA do "IA's Conta", um assistente financeiro especialista em finanças pessoais.
-            Um usuário com o seguinte perfil acaba de se cadastrar:
-            - Renda Mensal: R$ {renda:,.2f}
-            - Objetivo Principal: {objetivo}
-            - Perfil de Investidor: {perfil_investidor}
+                # Cria o prompt inicial super completo para a IA
+                prompt_inicial = f"""
+                Você é a IA do "IA's Conta", um assistente financeiro especialista.
+                Um usuário com o seguinte perfil detalhado acaba de se cadastrar:
+                - Renda Mensal: R$ {st.session_state.user_profile['renda']:,.2f}
+                - Objetivos: {st.session_state.user_profile['objetivos']}
+                - Nível de conhecimento sobre investimentos: {st.session_state.user_profile['conhecimento_investimento']}
+                - Perfil de Investidor: {st.session_state.user_profile['perfil_investidor']}
 
-            Sua primeira tarefa é gerar três estratégias de economia iniciais, personalizadas e práticas para este usuário.
-            Apresente-as em formato de lista numerada. Use uma linguagem encorajadora e comece com uma saudação de boas-vindas.
-            """
+                Sua primeira tarefa é gerar três estratégias iniciais, práticas e altamente personalizadas para este usuário, levando em conta TODOS os seus objetivos.
+                Apresente-as em formato de lista numerada. Use uma linguagem encorajadora, didática e comece com uma saudação de boas-vindas.
+                """
 
-            # ALTERAÇÃO 4: Atualiza o nome da IA na mensagem de sistema que define sua personalidade.
-            mensagem_sistema = {
-                "role": "system",
-                "content": f"""Você é a IA do "IA's Conta", um assistente financeiro pessoal. Você está conversando com um usuário cujo perfil é: Renda Mensal R${renda:,.2f}, Objetivo: {objetivo}, Perfil: {perfil_investidor}. Sua missão é ajudar o usuário a organizar, analisar e otimizar suas finanças. Responda sempre em português do Brasil, de forma didática e amigável. Baseie suas análises nas informações que o usuário fornecer e no perfil inicial dele."""
-            }
-            st.session_state.messages.append(mensagem_sistema)
-            st.session_state.messages.append({"role": "user", "content": prompt_inicial})
-            st.rerun()
+                # Cria a mensagem de sistema que dará a "personalidade" para a IA
+                mensagem_sistema = {
+                    "role": "system",
+                    "content": f"""Você é a IA do "IA's Conta", um assistente financeiro pessoal, didático e amigável. Você está conversando com um usuário com este perfil: {st.session_state.user_profile}. Sua missão é ajudá-lo a atingir seus objetivos. Responda sempre em português do Brasil. CRÍTICO: Adapte sua linguagem ao nível de conhecimento do usuário. Se ele for 'iniciante', use analogias simples e evite jargões financeiros. Se for 'intermediário', pode ser um pouco mais técnico, mas sempre explique os termos importantes."""
+                }
+                st.session_state.messages.append(mensagem_sistema)
+                st.session_state.messages.append({"role": "user", "content": prompt_inicial})
+                st.rerun()
 
-# --- SEÇÃO B: INTERFACE DE CHAT ---
+# --- SEÇÃO B: INTERFACE DE CHAT (Permanece a mesma) ---
 
 if st.session_state.profile_submitted:
     for message in st.session_state.messages:
