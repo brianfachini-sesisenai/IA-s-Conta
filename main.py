@@ -3,10 +3,10 @@
 import streamlit as st
 import logic
 
-# Configuração da página principal
+# Mude o page_title para corresponder ao novo nome "Início"
 st.set_page_config(
     page_title="IA's Conta - Início",
-    page_icon="💡",
+    page_icon="🏠", # Usamos o mesmo ícone para consistência
     layout="centered"
 )
 
