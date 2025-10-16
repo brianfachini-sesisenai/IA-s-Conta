@@ -13,6 +13,7 @@ def make_sidebar():
             /* Remove o padding do cabeçalho da sidebar (onde fica a seta) */
             [data-testid="stSidebarHeader"] {
                 padding-top: 0.5rem !important; /* Ajuste para 0rem se quiser totalmente colado */
+                margin-bottom: 0rem !important;
             }
 
             /* Zera o padding do elemento do título (h1) dentro da barra lateral */
