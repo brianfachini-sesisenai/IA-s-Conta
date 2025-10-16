@@ -37,4 +37,19 @@ def make_sidebar():
         st.write(f"Bem-vindo, **{st.session_state.username}**!")
         st.markdown("<hr style='margin-top: 0px; margin-bottom: 1rem;'>", unsafe_allow_html=True)
         
-        st.page_link("
+        st.page_link("main.py", label="Início", icon="🏠")
+        if 'user_profile' in st.session_state:
+            st.page_link("pages/1_Chat.py", label="Chat Financeiro", icon="💬")
+        
+        if st.session_state.get("username") == "admin":
+            st.divider()
+            st.page_link("pages/2_Admin.py", label="Gerenciar Usuários", icon="👨‍💼")
+
+        # --- SEÇÃO DE LOGOUT (Envolvida em um div para aplicarmos o estilo) ---
+        st.markdown('<div class="logout-section">', unsafe_allow_html=True)
+        st.divider()
+        if st.button("Sair da Conta", use_container_width=True):
+            for key in st.session_state.keys():
+                del st.session_state[key]
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
