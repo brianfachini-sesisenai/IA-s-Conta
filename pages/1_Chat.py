@@ -1,25 +1,25 @@
+# pages/1_Chat.py
 import streamlit as st
 import logic
-import navigation  # Importa nosso novo módulo de navegação
+import navigation
 
-# A configuração da página continua aqui
-st.set_page_config(
-    page_title="IA's Conta - Chat Financeiro",
-    page_icon="💬",
-    layout="centered"
-)
+st.set_page_config(page_title="IA's Conta - Chat", page_icon="💬")
 
-# CHAMA NOSSA FUNÇÃO PARA CRIAR A BARRA LATERAL PERSONALIZADA
+# --- VERIFICAÇÃO DE SEGURANÇA ---
+if not st.session_state.get("authenticated"):
+    st.error("Acesso negado. Por favor, faça o login na página inicial.")
+    st.page_link("main.py", label="Ir para o Login", icon="🏠")
+    st.stop()
+
 navigation.make_sidebar()
-
-# O resto do código da página continua exatamente o mesmo...
 st.title("💬 Chat Financeiro")
 
 if 'user_profile' not in st.session_state:
-    st.warning("Ops! Parece que você ainda não preencheu seu perfil.")
-    st.info("Por favor, preencha o questionário na página inicial para começar.")
+    st.warning("Parece que seu perfil financeiro não foi criado.")
+    st.info("Por favor, volte à página inicial para preencher o questionário.")
     st.page_link("main.py", label="Voltar para o Início", icon="🏠")
     st.stop()
+client = logic.initialize_client()
 
 client = logic.initialize_client()
 if not client:
