@@ -3,14 +3,14 @@
 import streamlit as st
 import logic
 
-# Configuração da página de chat
+# Mude o page_title para corresponder ao novo nome "Chat Financeiro"
 st.set_page_config(
-    page_title="IA's Conta - Chat",
-    page_icon="💬",
+    page_title="IA's Conta - Chat Financeiro",
+    page_icon="💬", # Usamos o mesmo ícone para consistência
     layout="centered"
 )
 
-st.title("💬 Chat com seu Assistente")
+st.title("💬 Chat Financeiro") # Você pode ajustar o título da página também
 
 # --- VERIFICAÇÃO DE SEGURANÇA ---
 # Se o usuário pulou o formulário, o perfil não existirá.
