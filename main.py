@@ -51,16 +51,15 @@ if "profile_submitted" not in st.session_state:
 st.title("💡 IA's Conta")
 st.markdown("Seu assistente financeiro pessoal, pronto para te ajudar a tomar as melhores decisões.")
 
-# --- SEÇÃO A: QUESTIONÁRIO INICIAL DETALHADO ---
+# --- SEÇÃO A: QUESTIONÁRIO INICIAL DETALHADO (VERSÃO MELHORADA) ---
 
 if not st.session_state.profile_submitted:
     st.info("👋 Olá! Antes de começarmos, preciso entender seus objetivos para te ajudar da melhor forma.")
 
     with st.form("user_profile_form"):
-        st.subheader("Sobre Você")
+        st.subheader("Sobre Você e Seus Objetivos")
         renda = st.number_input("Qual é a sua renda mensal aproximada (R$)?", min_value=0.0, step=100.0, format="%.2f")
         
-        st.subheader("Seus Objetivos")
         objetivos = st.multiselect(
             "Quais são seus principais objetivos financeiros? (Pode marcar mais de um)",
             ["Organizar minhas finanças", "Diminuir meus gastos", "Começar a investir"]
@@ -73,35 +72,47 @@ if not st.session_state.profile_submitted:
         # Se o usuário quer investir, mostramos as perguntas adicionais
         if "Começar a investir" in objetivos:
             st.subheader("Sobre Investimentos")
+            
+            # Pergunta sobre Nível de Conhecimento (Baixo/Médio/Alto)
             conhecimento_investimento = st.radio(
                 "Qual seu nível de conhecimento sobre investimentos?",
-                ["Sou iniciante, não sei quase nada", "Intermediário, já entendo o básico"]
-            )
-            perfil_investidor = st.radio(
-                "Identifique seu perfil de investidor:",
                 [
-                    "**Conservador:** Priorizo a segurança do meu dinheiro, mesmo que o retorno seja menor.",
-                    "**Moderado:** Busco um equilíbrio, aceitando um pouco de risco por melhores retornos.",
-                    "**Arrojado:** Meu foco é maximizar os retornos, mesmo que isso signifique correr mais riscos."
-                ]
+                    "Baixo (sou iniciante, prefiro explicações simples)",
+                    "Médio (já entendo o básico, como CDB e Ações)",
+                    "Alto (tenho experiência e entendo termos técnicos)"
+                ],
+                help="Isso nos ajuda a adaptar a linguagem para você."
+            )
+            
+            # Pergunta sobre Perfil de Investidor com descrições claras
+            perfil_investidor = st.radio(
+                "Qual seu perfil de investidor?",
+                [
+                    "Conservador: Priorizo a segurança do meu dinheiro, mesmo que o retorno seja menor.",
+                    "Moderado: Busco um equilíbrio, aceitando um pouco de risco por melhores retornos.",
+                    "Arrojado: Meu foco é maximizar os retornos, mesmo que isso signifique correr mais riscos."
+                ],
+                help="Seu perfil define o tipo de investimento mais adequado para você."
             )
         
         submitted = st.form_submit_button("Gerar meu plano inicial!")
 
         if submitted:
-            # Validação para garantir que o usuário preencheu os campos
             if not objetivos:
                 st.error("Por favor, selecione pelo menos um objetivo.")
             else:
+                # Limpa os dados para enviar à IA (ex: "Baixo" em vez de "Baixo (sou iniciante...)")
+                perfil_limpo = perfil_investidor.split(":")[0]
+                conhecimento_limpo = conhecimento_investimento.split(" ")[0]
+
                 st.session_state.user_profile = {
                     "renda": renda,
-                    "objetivos": ", ".join(objetivos), # Transforma a lista em texto
-                    "perfil_investidor": perfil_investidor.split(":")[0], # Pega só o nome do perfil (ex: "Conservador")
-                    "conhecimento_investimento": conhecimento_investimento
+                    "objetivos": ", ".join(objetivos),
+                    "perfil_investidor": perfil_limpo,
+                    "conhecimento_investimento": conhecimento_limpo
                 }
                 st.session_state.profile_submitted = True
 
-                # Cria o prompt inicial super completo para a IA
                 prompt_inicial = f"""
                 Você é a IA do "IA's Conta", um assistente financeiro especialista.
                 Um usuário com o seguinte perfil detalhado acaba de se cadastrar:
@@ -114,10 +125,13 @@ if not st.session_state.profile_submitted:
                 Apresente-as em formato de lista numerada. Use uma linguagem encorajadora, didática e comece com uma saudação de boas-vindas.
                 """
 
-                # Cria a mensagem de sistema que dará a "personalidade" para a IA
                 mensagem_sistema = {
                     "role": "system",
-                    "content": f"""Você é a IA do "IA's Conta", um assistente financeiro pessoal, didático e amigável. Você está conversando com um usuário com este perfil: {st.session_state.user_profile}. Sua missão é ajudá-lo a atingir seus objetivos. Responda sempre em português do Brasil. CRÍTICO: Adapte sua linguagem ao nível de conhecimento do usuário. Se ele for 'iniciante', use analogias simples e evite jargões financeiros. Se for 'intermediário', pode ser um pouco mais técnico, mas sempre explique os termos importantes."""
+                    "content": f"""Você é a IA do "IA's Conta", um assistente financeiro pessoal, didático e amigável. Você está conversando com um usuário com este perfil: {st.session_state.user_profile}. Sua missão é ajudá-lo a atingir seus objetivos. Responda sempre em português do Brasil.
+                    IMPORTANTE: Adapte sua linguagem ao nível de conhecimento do usuário sobre investimentos ('{st.session_state.user_profile['conhecimento_investimento']}').
+                    - Se o nível for 'Baixo', use analogias do dia a dia, evite jargões a todo custo e seja extremamente didático.
+                    - Se o nível for 'Médio', pode introduzir conceitos como CDB, Selic, Ações, mas sempre explique-os de forma resumida.
+                    - Se o nível for 'Alto', sinta-se à vontade para usar uma linguagem mais técnica e ir direto ao ponto, pois o usuário tem experiência."""
                 }
                 st.session_state.messages.append(mensagem_sistema)
                 st.session_state.messages.append({"role": "user", "content": prompt_inicial})
