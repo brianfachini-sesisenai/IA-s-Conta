@@ -9,10 +9,11 @@ def make_sidebar():
             /* Esconde a navegação padrão do Streamlit baseada em arquivos */
             [data-testid="stSidebarNav"] {display: none;}
 
-            /* --- MUDANÇA DEFINITIVA AQUI --- */
-            /* Força a remoção do espaçamento no topo da barra lateral */
-            [data-testid="stSidebarContent"] {
-                padding-top: 0.5rem !important; /* Use !important para forçar a regra */
+            /* --- SUA SOLUÇÃO PRECISA APLICADA AQUI --- */
+            /* Zera o padding do elemento do título (h1) dentro da barra lateral */
+            [data-testid="stSidebarContent"] h1 {
+                padding-top: 0rem !important;
+                padding-bottom: 0.25rem !important; /* Deixa um respiro mínimo antes da linha */
             }
         </style>
         """,
@@ -23,6 +24,7 @@ def make_sidebar():
     with st.sidebar:
         st.title("💡 IA's Conta")
         
+        # A nossa linha horizontal customizada continua perfeita para este cenário
         st.markdown("<hr style='margin-top: 0px; margin-bottom: 1rem;'>", unsafe_allow_html=True)
         
         st.page_link("main.py", label="Início", icon="🏠")
