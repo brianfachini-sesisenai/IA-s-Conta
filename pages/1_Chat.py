@@ -1,4 +1,3 @@
-# pages/1_Chat.py
 import streamlit as st
 import logic
 import navigation
@@ -10,29 +9,20 @@ st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsa
 # --- VERIFICAÇÕES DE SEGURANÇA ---
 # 1. O usuário está logado?
 if not st.session_state.get("authenticated"):
-    st.error("Acesso negado. Por favor, faça o login na página inicial.")
-    st.page_link("main.py", label="Ir para o Login", icon="🏠")
-    st.stop()
+    st.error("Acesso negado. Por favor, faça o login."); st.page_link("main.py", label="Ir para o Login"); st.stop()
 
-# 2. O perfil financeiro foi criado?
-if 'user_profile' not in st.session_state:
-    st.warning("Ops! Parece que você ainda não preencheu seu perfil financeiro.")
-    st.info("Por favor, preencha o questionário na página inicial para começar.")
-    st.page_link("main.py", label="Voltar para o Início", icon="🏠")
-    st.stop()
+# 2. O perfil financeiro foi criado? (Verificação crucial)
+if not st.session_state.get("profile_complete", False):
+    st.warning("Ops! Seu perfil financeiro não foi preenchido."); st.info("Por favor, complete o questionário na página inicial."); st.page_link("main.py", label="Completar Perfil"); st.stop()
 
-# 3. A conexão com a IA foi estabelecida com sucesso?
-if 'api_client' not in st.session_state or not st.session_state.api_client:
-    st.error("Não foi possível conectar à IA. Verifique as configurações e tente fazer o login novamente.")
-    st.page_link("main.py", label="Voltar para o Login", icon="🏠")
-    st.stop()
+# 3. A conexão com a IA existe e está funcionando?
+client = st.session_state.get("api_client")
+if not client:
+    st.error("A conexão com a IA falhou. Por favor, faça o login novamente."); st.page_link("main.py", label="Voltar para o Login"); st.stop()
 
-# Se todas as verificações passaram, mostre a interface.
+# Se tudo estiver OK, mostre a interface.
 navigation.make_sidebar()
 st.title("💬 Chat Financeiro")
-
-# Pega o cliente da IA que foi guardado na sessão
-client = st.session_state.api_client
 
 # --- INTERFACE DE CHAT (código que já tínhamos) ---
 for message in st.session_state.messages:
