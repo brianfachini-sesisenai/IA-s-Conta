@@ -33,14 +33,14 @@ def make_sidebar():
         st.markdown("<hr style='margin-top: 0px; margin-bottom: 1rem;'>", unsafe_allow_html=True)
         
         st.page_link("main.py", label="Início", icon="🏠")
-        if 'user_profile' in st.session_state:
+        
+        # O link para o chat só aparece se o perfil estiver completo.
+        if st.session_state.get("profile_complete", False):
             st.page_link("pages/1_Chat.py", label="Chat Financeiro", icon="💬")
         
-        # Link condicional para a página de Admin
         if st.session_state.get("username") == "admin":
-            st.divider()
-            st.page_link("pages/2_Admin.py", label="Gerenciar Usuários", icon="👨‍💼")
-
+            st.divider(); st.page_link("pages/2_Admin.py", label="Gerenciar Usuários", icon="👨‍💼")
+            
     # --- LÓGICA DO BOTÃO DE LOGOUT NO FINAL DA SIDEBAR ---
     # Usamos st.markdown para criar um 'div' com uma classe CSS customizada
     st.sidebar.markdown('<div class="logout-section">', unsafe_allow_html=True)
