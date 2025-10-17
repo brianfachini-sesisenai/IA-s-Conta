@@ -1,4 +1,18 @@
 import streamlit as st
+import logic
+
+def ensure_session_state():
+    """
+    Esta é a função mais importante. Ela roda em cada página e garante
+    que, se o usuário estiver logado, o estado da aplicação (cliente da IA, etc.)
+    esteja sempre inicializado e consistente.
+    """
+    # Se o usuário está logado, verificamos se o cliente da IA existe.
+    if st.session_state.get("authenticated"):
+        # Se o cliente da IA não existe na sessão ou falhou na criação anterior,
+        # tentamos inicializá-lo novamente.
+        if "api_client" not in st.session_state or st.session_state.api_client is None:
+            st.session_state.api_client = logic.initialize_client()
 
 def make_sidebar():
     """Cria uma barra lateral personalizada com o botão de logout no final."""
@@ -35,11 +49,13 @@ def make_sidebar():
         st.page_link("main.py", label="Início", icon="🏠")
         
         # O link para o chat só aparece se o perfil estiver completo.
+        # Usamos .get() para evitar erros se a chave ainda não existir.
         if st.session_state.get("profile_complete", False):
             st.page_link("pages/1_Chat.py", label="Chat Financeiro", icon="💬")
         
         if st.session_state.get("username") == "admin":
-            st.divider(); st.page_link("pages/2_Admin.py", label="Gerenciar Usuários", icon="👨‍💼")
+            st.divider()
+            st.page_link("pages/2_Admin.py", label="Gerenciar Usuários", icon="👨‍💼")
             
     # --- LÓGICA DO BOTÃO DE LOGOUT NO FINAL DA SIDEBAR ---
     # Usamos st.markdown para criar um 'div' com uma classe CSS customizada
