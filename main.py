@@ -1,4 +1,3 @@
-# main.py
 import streamlit as st
 import auth
 import logic
@@ -6,14 +5,7 @@ import navigation
 
 # --- CONFIGURAÇÃO UNIVERSAL E ESTILOS ---
 st.set_page_config(page_title="IA's Conta", page_icon="💡")
-
-# ESTA É A CORREÇÃO CRUCIAL PARA A SIDEBAR FEIA:
-# Esconde a navegação padrão do Streamlit IMEDIATAMENTE.
-# Como isso roda no topo de cada página, a sidebar padrão NUNCA aparecerá.
-st.markdown(
-    "<style>[data-testid='stSidebarNav'] {display: none;}</style>", 
-    unsafe_allow_html=True
-)
+st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
 
 # --- INICIALIZAÇÃO DO ESTADO DA SESSÃO ---
 if "authenticated" not in st.session_state:
@@ -21,24 +13,20 @@ if "authenticated" not in st.session_state:
 if "view" not in st.session_state:
     st.session_state.view = "login"
 
-# --- FUNÇÃO DE INICIALIZAÇÃO PÓS-LOGIN ---
-def initialize_app_after_login():
-    """Função central para rodar UMA VEZ após o login bem-sucedido."""
-    # 1. Conecta com a IA e guarda o cliente na sessão.
-    st.session_state.api_client = logic.initialize_client()
-    if not st.session_state.api_client:
-        st.error("Falha crítica ao conectar com a IA. Verifique os secrets.")
-        st.stop()
-    
-    # 2. Verifica se o usuário já tem um perfil financeiro no banco de dados.
-    #    (No futuro, aqui você faria uma consulta ao BD)
-    #    Por enquanto, vamos simular: se não está na sessão, não tem.
-    if 'user_profile' not in st.session_state:
-         # Marca que o perfil precisa ser criado
-        st.session_state.profile_needs_creation = True
-        st.session_state.step = 1 # Inicia o questionário
-    else:
-        st.session_state.profile_needs_creation = False
+# --- FUNÇÃO CENTRAL DE INICIALIZAÇÃO PÓS-LOGIN ---
+def initialize_app_session():
+    """
+    Função para rodar UMA VEZ após o login.
+    Inicializa a conexão com a IA e verifica o estado do perfil do usuário.
+    """
+    # 1. Inicializa a conexão com a IA e guarda na sessão para reuso.
+    if 'api_client' not in st.session_state:
+        st.session_state.api_client = logic.initialize_client()
+
+    # 2. Define o estado do perfil. No futuro, isso viria de uma consulta ao banco.
+    #    Por enquanto, assumimos que um novo login precisa criar um perfil.
+    if 'profile_complete' not in st.session_state:
+        st.session_state.profile_complete = False
 
 # --- TELAS DE LOGIN E CADASTRO ---
 def tela_login():
@@ -50,8 +38,7 @@ def tela_login():
             if auth.verificar_login(username, password):
                 st.session_state.authenticated = True
                 st.session_state.username = username
-                # Chama a inicialização central ANTES de recarregar a página
-                initialize_app_after_login() 
+                initialize_app_session() # Roda a inicialização ANTES de qualquer outra coisa
                 st.rerun()
             else:
                 st.error("Usuário ou senha incorretos.")
@@ -84,15 +71,17 @@ else:
     # Se o usuário ESTÁ logado, a barra lateral personalizada é exibida.
     navigation.make_sidebar()
 
-    # Agora, verifica se o perfil financeiro precisa ser criado.
-    if st.session_state.get("profile_needs_creation", False):
+    # Agora, a verificação é sobre o estado do perfil.
+    if not st.session_state.get("profile_complete", False):
         st.title("Vamos criar seu perfil financeiro")
         # --- QUESTIONÁRIO (lógica que já tínhamos) ---
+        if 'step' not in st.session_state: st.session_state.step = 1
+        
         if st.session_state.step == 1:
             with st.form("step1_form"):
                 st.subheader("Seu Perfil Básico")
                 renda = st.number_input("Renda mensal (R$)?", min_value=0.0)
-                objetivos = st.multiselect("Objetivos financeiros?", ["Organizar finanças", "Diminuir gastos", "Começar a investir"])
+                objetivos = st.multiselect("Objetivos?", ["Organizar finanças", "Diminuir gastos", "Começar a investir"])
                 if st.form_submit_button("Próximo"):
                     if not objetivos: st.error("Selecione pelo menos um objetivo.")
                     else:
@@ -114,8 +103,8 @@ else:
         if st.session_state.step == "final":
             st.session_state.user_profile = logic.create_user_profile(st.session_state.form_data)
             st.session_state.messages = logic.create_initial_messages(st.session_state.user_profile)
-            # Marca que o perfil foi criado para não pedir novamente
-            st.session_state.profile_needs_creation = False 
+            st.session_state.profile_complete = True # Marca que o perfil foi criado
+            del st.session_state.step # Limpa o estado do formulário
             st.switch_page("pages/1_Chat.py")
     else:
         # Se o perfil já existe, boas-vindas e link para o chat.
