@@ -11,8 +11,8 @@ def initialize_client():
             token=st.secrets["HUGGINGFACE_API_TOKEN"]
         )
         return client
-    except Exception:
-        # Não mostramos o erro aqui, a página que chama a função fará isso.
+    except Exception as e:
+        st.error(f"Erro ao inicializar o cliente da API: {e}", icon="🔥")
         return None
 
 def get_ai_response(client, historico_conversa):
@@ -48,15 +48,12 @@ def create_user_profile(form_data):
 def create_initial_messages(user_profile):
     """Cria a mensagem de sistema e o prompt inicial para começar o chat."""
     prompt_inicial = f"""
-    Você é a IA do "IA's Conta", um assistente financeiro especialista.
-    Um usuário com o seguinte perfil detalhado acaba de se cadastrar:
+    Sua primeira tarefa é gerar três estratégias iniciais, práticas e altamente personalizadas para um usuário com este perfil:
     - Renda Mensal: R$ {user_profile['renda']:,.2f}
     - Objetivos: {user_profile['objetivos']}
     - Nível de conhecimento sobre investimentos: {user_profile['conhecimento_investimento']}
     - Perfil de Investidor: {user_profile['perfil_investidor']}
-
-    Sua primeira tarefa é gerar três estratégias iniciais, práticas e altamente personalizadas para este usuário.
-    Apresente-as em formato de lista numerada. Use uma linguagem encorajadora e comece com uma saudação de boas-vindas.
+    Apresente-as em lista numerada. Use uma linguagem encorajadora e comece com uma saudação de boas-vindas.
     """
 
     mensagem_sistema = {
@@ -64,9 +61,8 @@ def create_initial_messages(user_profile):
         "content": f"""Você é a IA do "IA's Conta", um assistente financeiro pessoal. Sua personalidade é didática, paciente e confiável. Você está conversando com um usuário com este perfil: {user_profile}.
         REGRAS PRINCIPAIS:
         1.  **IDIOMA:** Responda TUDO exclusivamente em português do Brasil.
-        2.  **TOM DE VOZ:** Use uma linguagem natural e conversacional.
-        3.  **ADAPTAÇÃO:** Adapte sua linguagem ao nível de conhecimento do usuário ('{user_profile['conhecimento_investimento']}').
-        4.  **SEGURANÇA:** Sempre inclua um aviso de que suas sugestões não são recomendações de investimento formais.
+        2.  **ADAPTAÇÃO:** Adapte sua linguagem ao nível de conhecimento do usuário ('{user_profile['conhecimento_investimento']}'). Se for 'Baixo', seja extremamente simples. Se 'Médio', explique conceitos. Se 'Alto', seja técnico.
+        3.  **SEGURANÇA:** Sempre inclua um aviso de que suas sugestões não são recomendações de investimento formais.
         """
     }
     
