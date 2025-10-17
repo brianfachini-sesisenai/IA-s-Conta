@@ -1,13 +1,23 @@
+# main.py
+
 import streamlit as st
 import auth
 import logic
 import navigation
 
 # --- CONFIGURAÇÃO UNIVERSAL E ESTILOS ---
+# Esta configuração é a primeira coisa a ser lida
 st.set_page_config(page_title="IA's Conta", page_icon="💡")
-st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
+
+# Esconde a navegação padrão do Streamlit IMEDIATAMENTE.
+# Isso garante que a "sidebar feia" nunca apareça.
+st.markdown(
+    "<style>[data-testid='stSidebarNav'] {display: none;}</style>", 
+    unsafe_allow_html=True
+)
 
 # --- INICIALIZAÇÃO DO ESTADO DA SESSÃO ---
+# Define os estados iniciais se eles não existirem.
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "view" not in st.session_state:
@@ -19,12 +29,12 @@ def initialize_app_session():
     Função para rodar UMA VEZ após o login.
     Inicializa a conexão com a IA e verifica o estado do perfil do usuário.
     """
-    # 1. Inicializa a conexão com a IA e guarda na sessão para reuso.
+    # 1. Se o cliente da IA ainda não foi inicializado, faz isso agora.
     if 'api_client' not in st.session_state:
         st.session_state.api_client = logic.initialize_client()
 
     # 2. Define o estado do perfil. No futuro, isso viria de uma consulta ao banco.
-    #    Por enquanto, assumimos que um novo login precisa criar um perfil.
+    #    Por agora, se a flag 'profile_complete' não existe, ela é False.
     if 'profile_complete' not in st.session_state:
         st.session_state.profile_complete = False
 
@@ -38,7 +48,7 @@ def tela_login():
             if auth.verificar_login(username, password):
                 st.session_state.authenticated = True
                 st.session_state.username = username
-                initialize_app_session() # Roda a inicialização ANTES de qualquer outra coisa
+                initialize_app_session() # Roda a inicialização ANTES de recarregar
                 st.rerun()
             else:
                 st.error("Usuário ou senha incorretos.")
@@ -74,14 +84,13 @@ else:
     # Agora, a verificação é sobre o estado do perfil.
     if not st.session_state.get("profile_complete", False):
         st.title("Vamos criar seu perfil financeiro")
-        # --- QUESTIONÁRIO (lógica que já tínhamos) ---
         if 'step' not in st.session_state: st.session_state.step = 1
         
         if st.session_state.step == 1:
             with st.form("step1_form"):
                 st.subheader("Seu Perfil Básico")
                 renda = st.number_input("Renda mensal (R$)?", min_value=0.0)
-                objetivos = st.multiselect("Objetivos?", ["Organizar finanças", "Diminuir gastos", "Começar a investir"])
+                objetivos = st.multiselect("Objetivos financeiros?", ["Organizar finanças", "Diminuir gastos", "Começar a investir"])
                 if st.form_submit_button("Próximo"):
                     if not objetivos: st.error("Selecione pelo menos um objetivo.")
                     else:
@@ -105,6 +114,7 @@ else:
             st.session_state.messages = logic.create_initial_messages(st.session_state.user_profile)
             st.session_state.profile_complete = True # Marca que o perfil foi criado
             del st.session_state.step # Limpa o estado do formulário
+            del st.session_state.form_data # Limpa os dados do formulário
             st.switch_page("pages/1_Chat.py")
     else:
         # Se o perfil já existe, boas-vindas e link para o chat.
