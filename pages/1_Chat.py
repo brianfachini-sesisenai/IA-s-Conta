@@ -6,16 +6,16 @@ import navigation
 st.set_page_config(page_title="IA's Conta - Chat", page_icon="💬")
 st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
 
+# --- GARANTE O ESTADO DA SESSÃO ---
+navigation.ensure_session_state()
+
 # --- VERIFICAÇÕES DE SEGURANÇA ---
-# 1. O usuário está logado?
 if not st.session_state.get("authenticated"):
     st.error("Acesso negado. Por favor, faça o login."); st.page_link("main.py", label="Ir para o Login"); st.stop()
 
-# 2. O perfil financeiro foi criado? (Verificação crucial)
 if not st.session_state.get("profile_complete", False):
     st.warning("Ops! Seu perfil financeiro não foi preenchido."); st.info("Por favor, complete o questionário na página inicial."); st.page_link("main.py", label="Completar Perfil"); st.stop()
 
-# 3. A conexão com a IA existe e está funcionando?
 client = st.session_state.get("api_client")
 if not client:
     st.error("A conexão com a IA falhou. Por favor, faça o login novamente."); st.page_link("main.py", label="Voltar para o Login"); st.stop()
