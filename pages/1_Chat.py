@@ -1,30 +1,36 @@
+# pages/1_Chat.py
+
 import streamlit as st
 import logic
 import navigation
 
-# --- CONFIGURAÇÃO E ESTILO UNIVERSAL ---
-st.set_page_config(page_title="IA's Conta - Chat", page_icon="💬")
-st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
+st.set_page_config(
+    page_title="IA's Conta - Chat Financeiro",
+    page_icon="💬",
+    layout="centered"
+)
 
-# --- GARANTE O ESTADO DA SESSÃO ---
-navigation.ensure_session_state()
-
-# --- VERIFICAÇÕES DE SEGURANÇA ---
-if not st.session_state.get("authenticated"):
-    st.error("Acesso negado. Por favor, faça o login."); st.page_link("main.py", label="Ir para o Login"); st.stop()
-
-if not st.session_state.get("profile_complete", False):
-    st.warning("Ops! Seu perfil financeiro não foi preenchido."); st.info("Por favor, complete o questionário na página inicial."); st.page_link("main.py", label="Completar Perfil"); st.stop()
-
-client = st.session_state.get("api_client")
-if not client:
-    st.error("A conexão com a IA falhou. Por favor, faça o login novamente."); st.page_link("main.py", label="Voltar para o Login"); st.stop()
-
-# Se tudo estiver OK, mostre a interface.
+# Renderiza a barra lateral personalizada
 navigation.make_sidebar()
+
 st.title("💬 Chat Financeiro")
 
-# --- INTERFACE DE CHAT (código que já tínhamos) ---
+# --- VERIFICAÇÃO DE SEGURANÇA ---
+# Se o usuário pulou o formulário, o perfil não existirá.
+# Mandamos ele de volta para a página principal.
+if 'user_profile' not in st.session_state:
+    st.warning("Ops! Parece que você ainda não preencheu seu perfil.")
+    st.info("Por favor, preencha o questionário na página inicial para começar.")
+    st.page_link("main.py", label="Voltar para o Início", icon="🏠")
+    st.stop()
+
+# --- INICIALIZAÇÃO DO CLIENTE DA API ---
+client = logic.initialize_client()
+if not client:
+    st.error("Não foi possível conectar à IA. Verifique as configurações.", icon="🔥")
+    st.stop()
+
+# --- INTERFACE DE CHAT ---
 for message in st.session_state.messages:
     if message["role"] != "system":
         with st.chat_message(message["role"]):
