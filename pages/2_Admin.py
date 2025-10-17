@@ -1,13 +1,16 @@
 # pages/2_Admin.py
+
 import streamlit as st
 import auth
 import pandas as pd
 import navigation
 
+# --- CONFIGURAÇÃO E ESTILO UNIVERSAL ---
 st.set_page_config(page_title="IA's Conta - Admin", page_icon="👨‍💼")
-st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True) # <-- ADICIONE AQUI
+st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
 
 # --- VERIFICAÇÃO DE SEGURANÇA ---
+# Garante que apenas o admin logado possa ver esta página
 if not st.session_state.get("authenticated") or st.session_state.get("username") != "admin":
     st.error("Acesso restrito à administração.")
     st.page_link("main.py", label="Voltar para o Início", icon="🏠")
@@ -19,8 +22,6 @@ navigation.make_sidebar()
 # --- INTERFACE DE GERENCIAMENTO DE USUÁRIOS ---
 st.title("👨‍💼 Painel de Gerenciamento de Usuários")
 
-# (Aqui entra a lógica do seu data_editor, que era excelente)
-# ... (colei e adaptei para você) ...
 with st.expander("➕ Criar Novo Usuário", expanded=True):
     with st.form("create_user_form"):
         new_username = st.text_input("Nome do novo usuário")
@@ -44,19 +45,20 @@ try:
     if todos_usuarios.empty:
         st.warning("Nenhum usuário cadastrado (além do admin).")
     else:
-        usuarios_df = todos_usuarios.copy()
-        usuarios_df["nova_senha"] = ""
-        usuarios_df["deletar"] = False
+        # Usamos uma cópia para edição para evitar problemas de estado
+        usuarios_para_editar = todos_usuarios.copy()
+        usuarios_para_editar["nova_senha"] = ""
+        usuarios_para_editar["deletar"] = False
 
         edited_df = st.data_editor(
-            usuarios_df,
+            usuarios_para_editar,
             column_config={
                 "username": st.column_config.TextColumn("Usuário (pode ser editado)"),
                 "criado_em": st.column_config.DatetimeColumn("Data de Criação", disabled=True),
                 "nova_senha": st.column_config.TextColumn("Definir Nova Senha"),
                 "deletar": st.column_config.CheckboxColumn("Deletar?")
             },
-            hide_index=True, use_container_width=True
+            hide_index=True, use_container_width=True, key="admin_data_editor"
         )
         
         if st.button("Salvar Alterações", type="primary"):
@@ -80,6 +82,7 @@ try:
                 if edited_row["nova_senha"]:
                     auth.update_user_password(original_username, edited_row["nova_senha"])
                     st.toast(f"Senha de '{original_username}' atualizada.")
+            
             st.success("Alterações processadas! Recarregando a lista...")
             st.rerun()
 except Exception as e:
