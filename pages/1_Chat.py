@@ -3,29 +3,38 @@ import streamlit as st
 import logic
 import navigation
 
+# --- CONFIGURAÇÃO E ESTILO UNIVERSAL ---
 st.set_page_config(page_title="IA's Conta - Chat", page_icon="💬")
+st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
 
-# --- VERIFICAÇÃO DE SEGURANÇA ---
+# --- VERIFICAÇÕES DE SEGURANÇA ---
+# 1. O usuário está logado?
 if not st.session_state.get("authenticated"):
     st.error("Acesso negado. Por favor, faça o login na página inicial.")
     st.page_link("main.py", label="Ir para o Login", icon="🏠")
     st.stop()
 
+# 2. O perfil financeiro foi criado?
+if 'user_profile' not in st.session_state:
+    st.warning("Ops! Parece que você ainda não preencheu seu perfil financeiro.")
+    st.info("Por favor, preencha o questionário na página inicial para começar.")
+    st.page_link("main.py", label="Voltar para o Início", icon="🏠")
+    st.stop()
+
+# 3. A conexão com a IA foi estabelecida com sucesso?
+if 'api_client' not in st.session_state or not st.session_state.api_client:
+    st.error("Não foi possível conectar à IA. Verifique as configurações e tente fazer o login novamente.")
+    st.page_link("main.py", label="Voltar para o Login", icon="🏠")
+    st.stop()
+
+# Se todas as verificações passaram, mostre a interface.
 navigation.make_sidebar()
 st.title("💬 Chat Financeiro")
 
-if 'user_profile' not in st.session_state:
-    st.warning("Parece que seu perfil financeiro não foi criado.")
-    st.info("Por favor, volte à página inicial para preencher o questionário.")
-    st.page_link("main.py", label="Voltar para o Início", icon="🏠")
-    st.stop()
-client = logic.initialize_client()
+# Pega o cliente da IA que foi guardado na sessão
+client = st.session_state.api_client
 
-client = logic.initialize_client()
-if not client:
-    st.error("Não foi possível conectar à IA. Verifique as configurações.", icon="🔥")
-    st.stop()
-
+# --- INTERFACE DE CHAT (código que já tínhamos) ---
 for message in st.session_state.messages:
     if message["role"] != "system":
         with st.chat_message(message["role"]):
