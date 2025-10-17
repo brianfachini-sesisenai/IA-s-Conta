@@ -9,7 +9,7 @@ def make_sidebar():
         """
         <style>
             [data-testid="stSidebarNav"] {display: none;}
-            [data-testid="stSidebarHeader"] {padding-top: 0.5rem !important;}
+            [data-testid="stSidebarHeader"] {padding-top: 0.5rem !important; margin-bottom: 0rem !important;}
             [data-testid="stSidebarContent"] h1 {padding-top: 0rem !important; padding-bottom: 0.25rem !important;}
             
             [data-testid="stSidebarContent"] {
