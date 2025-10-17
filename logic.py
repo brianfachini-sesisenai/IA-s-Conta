@@ -12,7 +12,6 @@ def initialize_client():
         )
         return client
     except Exception:
-        # Não mostramos o erro aqui, a página que chama a função fará isso.
         return None
 
 def get_ai_response(client, historico_conversa):
@@ -20,7 +19,6 @@ def get_ai_response(client, historico_conversa):
     if not client:
         yield "Erro: O cliente da API não foi inicializado corretamente."
         return
-
     try:
         response_stream = client.chat_completion(
             messages=historico_conversa, max_tokens=2048, stream=True
@@ -30,20 +28,19 @@ def get_ai_response(client, historico_conversa):
             if pedaco_texto and "</s>" not in pedaco_texto:
                 yield pedaco_texto
     except Exception as e:
-        yield f"\n\nDesculpe, ocorreu um erro ao processar sua solicitação: {e}"
+        yield f"\n\nDesculpe, ocorreu um erro: {e}"
 
 def create_user_profile(form_data):
-    """Processa os dados do formulário e cria um dicionário limpo de perfil do usuário."""
+    """Processa os dados do formulário e cria um dicionário de perfil do usuário."""
     perfil_limpo = form_data.get('perfil_investidor', 'Não se aplica').split(':')[0]
     conhecimento_limpo = form_data.get('conhecimento_investimento', 'Não se aplica').split(' ')[0]
 
-    user_profile = {
+    return {
         "renda": form_data['renda'],
         "objetivos": ", ".join(form_data['objetivos']),
         "perfil_investidor": perfil_limpo,
         "conhecimento_investimento": conhecimento_limpo
     }
-    return user_profile
 
 def create_initial_messages(user_profile):
     """Cria a mensagem de sistema e o prompt inicial para começar o chat."""
@@ -54,20 +51,15 @@ def create_initial_messages(user_profile):
     - Objetivos: {user_profile['objetivos']}
     - Nível de conhecimento sobre investimentos: {user_profile['conhecimento_investimento']}
     - Perfil de Investidor: {user_profile['perfil_investidor']}
-
-    Sua primeira tarefa é gerar três estratégias iniciais, práticas e altamente personalizadas para este usuário.
-    Apresente-as em formato de lista numerada. Use uma linguagem encorajadora e comece com uma saudação de boas-vindas.
+    Sua primeira tarefa é gerar três estratégias iniciais, práticas e personalizadas para este usuário.
     """
-
     mensagem_sistema = {
         "role": "system",
-        "content": f"""Você é a IA do "IA's Conta", um assistente financeiro pessoal. Sua personalidade é didática, paciente e confiável. Você está conversando com um usuário com este perfil: {user_profile}.
-        REGRAS PRINCIPAIS:
-        1.  **IDIOMA:** Responda TUDO exclusivamente em português do Brasil.
-        2.  **TOM DE VOZ:** Use uma linguagem natural e conversacional.
-        3.  **ADAPTAÇÃO:** Adapte sua linguagem ao nível de conhecimento do usuário ('{user_profile['conhecimento_investimento']}').
-        4.  **SEGURANÇA:** Sempre inclua um aviso de que suas sugestões não são recomendações de investimento formais.
+        "content": f"""Você é a IA do "IA's Conta", um assistente financeiro pessoal, didático e confiável. Você está conversando com um usuário com este perfil: {user_profile}.
+        REGRAS:
+        1. Responda TUDO em português do Brasil.
+        2. Adapte sua linguagem ao nível de conhecimento do usuário ('{user_profile['conhecimento_investimento']}').
+        3. Sempre inclua um aviso de que suas sugestões não são recomendações de investimento formais.
         """
     }
-    
     return [mensagem_sistema, {"role": "user", "content": prompt_inicial}]
