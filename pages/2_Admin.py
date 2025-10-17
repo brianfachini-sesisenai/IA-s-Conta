@@ -5,6 +5,7 @@ import pandas as pd
 import navigation
 
 st.set_page_config(page_title="IA's Conta - Admin", page_icon="👨‍💼")
+st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True) # <-- ADICIONE AQUI
 
 # --- VERIFICAÇÃO DE SEGURANÇA ---
 if not st.session_state.get("authenticated") or st.session_state.get("username") != "admin":
