@@ -1,16 +1,13 @@
 # auth.py
+
 import streamlit as st
 from datetime import datetime
 import pandas as pd
 from sqlalchemy.sql import text
 
-# --- FUNÇÕES DE ACESSO AO BANCO DE DADOS ---
-
 def get_db_connection():
     """Retorna uma conexão com o banco de dados (configurado nos secrets)."""
     return st.connection("supabase_db", type="sql")
-
-# --- FUNÇÕES DE LOGIN E CADASTRO ---
 
 def verificar_login(username, password):
     """Verifica as credenciais do usuário."""
@@ -45,10 +42,6 @@ def registrar_novo_usuario(username, password):
         return "Sucesso: Usuário cadastrado com sucesso!"
     except Exception as e:
         return f"Erro inesperado no banco de dados: {e}"
-
-# --- FUNÇÕES DE GERENCIAMENTO DE USUÁRIOS (PARA ADMIN) ---
-# (O resto das suas funções, como delete_user, update_user_password, etc., entram aqui)
-# Colei o restante para garantir que tudo esteja no lugar certo.
 
 def delete_user(username):
     try:
